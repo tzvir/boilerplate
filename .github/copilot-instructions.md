@@ -32,6 +32,16 @@ This is a minimal Node.js boilerplate project with Docker support, featuring an 
 - Implement proper error handling with try-catch blocks
 - Enable strict mode in tsconfig.json
 
+## Dependency Injection
+This project uses **tsyringe** for dependency injection:
+- Use `@injectable()` decorator on classes that need to be injected
+- Use `@inject()` for constructor parameter injection when needed
+- Register dependencies in a container setup file
+- Import `reflect-metadata` at the application entry point
+- Resolve dependencies using `container.resolve()`
+- Prefer constructor injection over property injection
+- Keep the DI container configuration centralized
+
 ## SOLID Principles
 Apply SOLID principles to maintain clean, maintainable code:
 
