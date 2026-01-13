@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limiter API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-card.remaining .stat-value {
+            color: #10b981;
+        }
+        
+        .stat-card.limit .stat-value {
+            color: #667eea;
+        }
+        
+        .stat-card.reset .stat-value {
+            color: #f59e0b;
+            font-size: 1.2em;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #667eea 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+        
+        .log-entry.success {
+            border-left-color: #10b981;
+        }
+        
+        .log-entry.error {
+            border-left-color: #ef4444;
+        }
+        
+        .log-entry .timestamp {
+            color: #94a3b8;
+            margin-right: 10px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Rate Limiter Demo</h1>
+        <p class="subtitle">Test the custom-built rate limiting implementation</p>
+        
+        <div class="alert alert-error" id="alert"></div>
+        
+        <div class="stats">
+            <div class="stat-card limit">
+                <div class="stat-label">Limit</div>
+                <div class="stat-value" id="limit">100</div>
+            </div>
+            <div class="stat-card remaining">
+                <div class="stat-label">Remaining</div>
+                <div class="stat-value" id="remaining">-</div>
+            </div>
+            <div class="stat-card reset">
+                <div class="stat-label">Resets In</div>
+                <div class="stat-value" id="reset">-</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 100%">
+                <span id="progressText">100%</span>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-primary" onclick="makeRequest()">Make Request</button>
+            <button class="btn-secondary" onclick="make10Requests()">Make 10 Requests</button>
+            <button class="btn-danger" onclick="make100Requests()">Exhaust Limit</button>
+        </div>
+        
+        <h3 style="margin-bottom: 10px; color: #333;">Request Log</h3>
+        <div class="log" id="log">
+            <div class="log-entry">Ready to test rate limiting...</div>
+        </div>
+    </div>
+
+    <script>
+        let limit = 100;
+        let remaining = 100;
+        let resetTime = null;
+        let requestCount = 0;
+
+        function updateStats(headers) {
+            if (headers.has('x-ratelimit-limit')) {
+                limit = parseInt(headers.get('x-ratelimit-limit'));
+                document.getElementById('limit').textContent = limit;
+            }
+            
+            if (headers.has('x-ratelimit-remaining')) {
+                remaining = parseInt(headers.get('x-ratelimit-remaining'));
+                document.getElementById('remaining').textContent = remaining;
+                
+                // Update progress bar
+                const percentage = (remaining / limit * 100).toFixed(0);
+                const progressBar = document.getElementById('progress');
+                const progressText = document.getElementById('progressText');
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = percentage + '%';
+                
+                if (percentage < 20) {
+                    progressBar.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+                } else if (percentage < 50) {
+                    progressBar.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+                } else {
+                    progressBar.style.background = 'linear-gradient(90deg, #10b981 0%, #667eea 100%)';
+                }
+            }
+            
+            if (headers.has('x-ratelimit-reset')) {
+                resetTime = new Date(headers.get('x-ratelimit-reset'));
+                updateResetTimer();
+            }
+        }
+
+        function updateResetTimer() {
+            if (!resetTime) return;
+            
+            const now = new Date();
+            const diff = resetTime - now;
+            
+            if (diff <= 0) {
+                document.getElementById('reset').textContent = 'Now';
+                return;
+            }
+            
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            
+            document.getElementById('reset').textContent = `${minutes}m ${seconds}s`;
+            
+            setTimeout(updateResetTimer, 1000);
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 20 entries
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        async function makeRequest() {
+            try {
+                requestCount++;
+                const response = await fetch('/api');
+                const data = await response.json();
+                
+                updateStats(response.headers);
+                
+                if (response.ok) {
+                    addLog(`Request #${requestCount}: SUCCESS - ${remaining} remaining`, 'success');
+                } else {
+                    addLog(`Request #${requestCount}: RATE LIMITED - ${data.message}`, 'error');
+                    showAlert(data.message || 'Rate limit exceeded!', 'error');
+                }
+            } catch (error) {
+                addLog(`Request failed: ${error.message}`, 'error');
+                showAlert('Request failed: ' + error.message, 'error');
+            }
+        }
+
+        async function make10Requests() {
+            for (let i = 0; i < 10; i++) {
+                await makeRequest();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        async function make100Requests() {
+            for (let i = 0; i < 100; i++) {
+                await makeRequest();
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        }
+
+        // Load initial stats
+        makeRequest();
+    </script>
+</body>
+</html>

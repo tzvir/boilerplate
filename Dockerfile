@@ -24,6 +24,9 @@ RUN npm install --production
 # copy built files from builder
 COPY --from=builder /app/dist ./dist
 
+# copy static files
+COPY public ./public
+
 ENV NODE_ENV=production
 EXPOSE 3000
 

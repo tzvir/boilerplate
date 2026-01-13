@@ -1,5 +1,8 @@
 # GitHub Copilot Instructions
 
+## Meta-Rule: Continuous Improvement
+**Every time you learn something new, discover a better pattern, or identify an improvement to project practices, add it as a rule to this instructions file.** This ensures the project continuously improves and knowledge is preserved for future development.
+
 ## Project Overview
 This is a minimal Node.js boilerplate project with Docker support, featuring an Express.js server written in TypeScript.
 
@@ -74,6 +77,11 @@ Apply SOLID principles to maintain clean, maintainable code:
 - Inject dependencies rather than hard-coding them
 - Use dependency injection for services and repositories
 - Decouple high-level modules from low-level implementation details
+- **CRITICAL**: Never instantiate service dependencies directly inside middleware or other consumers
+- **Always define interfaces** for service contracts (e.g., `IRateLimiter` interface)
+- Middleware should accept injected services as parameters, not create them internally
+- Factory functions should accept service instances, not configuration to create services
+- This allows for easy testing, swapping implementations (e.g., in-memory → Redis), and loose coupling
 
 ## Clean Code Rules
 
