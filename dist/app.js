@@ -12,6 +12,14 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.json({ message: 'Hello from Node.js Docker boilerplate with TypeScript' });
 });
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
 // Example POST endpoint to test JSON parsing
 app.post('/echo', (req, res) => {
     res.json({ received: req.body });

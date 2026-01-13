@@ -11,6 +11,15 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello from Node.js Docker boilerplate with TypeScript' });
 });
 
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Example POST endpoint to test JSON parsing
 app.post('/echo', (req: Request, res: Response) => {
   res.json({ received: req.body });
