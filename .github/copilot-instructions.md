@@ -117,9 +117,31 @@ Apply SOLID principles to maintain clean, maintainable code:
 - Keep cyclomatic complexity low (avoid deeply nested conditionals)
 
 ## Testing
+**ALL code MUST be covered with unit tests.**
+
+### Test Requirements
+- Every function, class, and module must have corresponding unit tests
 - Tests are located in the `tests/` directory
 - Run tests with `npm test`
-- Write simple, focused unit tests
+- Tests must pass before any code changes are committed
+- Tests must pass before every deployment
+
+### Test Guidelines
+- Write simple, focused unit tests that test one thing
+- Use descriptive test names that explain what is being tested
+- Follow Arrange-Act-Assert (AAA) pattern
+- Mock external dependencies to isolate units under test
+- Test both happy paths and edge cases
+- Test error handling and validation logic
+- Aim for high code coverage (minimum 80%)
+
+### Test Workflow
+1. Write tests before or alongside new code (TDD approach recommended)
+2. Run tests after every change: `npm test`
+3. Fix any failing tests immediately
+4. Never skip or disable tests to make code pass
+5. Run full test suite before pushing code
+6. Automated tests should run in CI/CD pipeline before deployment
 
 ## Docker Guidelines
 - The app runs on port 3000 inside the container
