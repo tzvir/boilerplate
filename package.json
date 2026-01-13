@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
+    "dev:debug": "nodemon --exec ts-node --inspect=0.0.0.0:9229 src/index.ts",
     "test": "ts-node tests/test.ts"
   },
   "keywords": [],
