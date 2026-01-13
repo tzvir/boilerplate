@@ -1,20 +1,19 @@
 import express, { Request, Response } from 'express';
-import { container } from 'tsyringe';
-import { RateLimiter } from './rateLimiter';
-import { createRateLimiterMiddleware } from './middleware/rateLimiterMiddleware';
 import { errorHandler, notFoundHandler, AppError } from './middleware/errorHandler';
 
 const app = express();
 
-// Configure rate limiter: 10 requests per minute
-const rateLimiter = new RateLimiter({ windowMs: 60000, maxRequests: 10 });
-const rateLimiterMiddleware = createRateLimiterMiddleware(rateLimiter);
-
-// Apply rate limiting to all routes
-app.use(rateLimiterMiddleware);
+// Parse JSON request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello from Node.js Docker boilerplate with TypeScript' });
+});
+
+// Example POST endpoint to test JSON parsing
+app.post('/echo', (req: Request, res: Response) => {
+  res.json({ received: req.body });
 });
 
 // Example error route for testing
